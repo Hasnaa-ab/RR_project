@@ -1,3 +1,9 @@
 # RR_project
 
-Hassnaa Abdelghany, Daniel Śliwiński, Artur Skowroński
+The final project for the Reproducible Research course
+
+Team members:
+    Hassnaa Abdelghany
+    Daniel Śliwiński
+    Artur Skowroński
+
