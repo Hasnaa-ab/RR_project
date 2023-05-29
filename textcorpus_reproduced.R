@@ -53,4 +53,8 @@ for (i in 1:length(articles)) {
 
 stemmed_articles <- as.list(stemmed_articles)
 
+# 
+stopwordscustom <- read.csv('stp.csv', header = FALSE, col.names = c('word'))
+stopwordscustom <- as.character(stopwordscustom$word)
+
 
