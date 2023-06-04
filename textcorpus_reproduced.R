@@ -1,5 +1,17 @@
 # Each comment is a .ipynb cell
-
+# Install and load necessary packages
+#install.packages(c("tm", "SnowballC", "slam", "topicmodels", "quanteda", "caret", "e1071", "randomForest", "kernlab", "cluster", "topicmodels", "LDAvis", "ggplot2", 'rlang'))
+library(tm)
+library(slam)
+library(quanteda)
+library(caret)
+library(e1071)
+library(randomForest)
+library(kernlab)
+library(cluster)
+library(topicmodels)
+library(LDAvis)
+library(ggplot2)
 library(stringr)
 library(tokenizers)
 library(SnowballC)
@@ -57,4 +69,30 @@ stemmed_articles <- as.list(stemmed_articles)
 stopwordscustom <- read.csv('stp.csv', header = FALSE, col.names = c('word'))
 stopwordscustom <- as.character(stopwordscustom$word)
 
+# Remove custom stopwords
+articles <- lapply(articles, function(x) x[!x %in% stopwordscustom])
+
+# Generate a document-term matrix
+dtm <- DocumentTermMatrix(Corpus(VectorSource(articles)))
+
+# Transform to a term frequency-inverse document frequency (TF-IDF) matrix
+dtm_tfidf <- weightTfIdf(dtm)
+
+# Label encoding
+fulldata$labelnumber <- as.numeric(as.factor(fulldata$label))
+
+# Merge the labels with the dtm
+dtm_tfidf <- cbind(dtm_tfidf, fulldata$labelnumber)
+
+# Split the dataset into training and testing sets
+set.seed(4545) #seed for the reproducibility
+trainIndex <- createDataPartition(fulldata$labelnumber, p = .6, list = FALSE, times = 1)
+
+# Split the labels as well
+train_labels <- fulldata$labelnumber[trainIndex]
+test_labels  <- fulldata$labelnumber[-trainIndex]
+
+# Split the dtm_tfidf
+train <- dtm_tfidf[trainIndex,]
+test  <- dtm_tfidf[-trainIndex,]
 
