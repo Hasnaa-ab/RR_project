@@ -1,6 +1,9 @@
 # Each comment is a .ipynb cell
 # Install and load necessary packages
-#install.packages(c("tm", "SnowballC", "slam", "topicmodels", "quanteda", "caret", "e1071", "randomForest", "kernlab", "cluster", "topicmodels", "LDAvis", "ggplot2", 'rlang'))
+#install.packages(c("tm", "SnowballC", "slam", "topicmodels", "quanteda", "caret",
+#                   "e1071", "randomForest", "kernlab", "cluster", "topicmodels",
+#                   "LDAvis", "ggplot2", 'rlang', 'ranger'))
+
 library(tm)
 library(slam)
 library(quanteda)
@@ -15,6 +18,8 @@ library(ggplot2)
 library(stringr)
 library(tokenizers)
 library(SnowballC)
+library(ranger)
+library(Matrix)
 
 # Load data
 fulldata <- read.csv("fulldata-updated.csv")
@@ -96,37 +101,25 @@ test_labels  <- fulldata$labelnumber[-trainIndex]
 train <- dtm_tfidf[trainIndex,]
 test  <- dtm_tfidf[-trainIndex,]
 
-# Convert the sparse matrix to a dense matrix
-train_dense <- as.matrix(train)
+# Prepare matrices suitable for Random Forest
+train_df <- as.data.frame(as.matrix(train))
+test_df <- as.data.frame(as.matrix(test))
 
-# Convert the dense matrix to a data frame
-train_df <- as.data.frame(train_dense)
-
-# Now add the labels
-train_df$labelnumber <- train_labels
-
-# Make column names unique
+# Rename the columns to use only alphanumeric characters and underscores
 names(train_df) <- make.names(names(train_df), unique = TRUE)
-
-# Run a Extra Trees model
-model <- randomForest(as.factor(train_df$labelnumber) ~ ., data = train_df, ntree = 100, mtry = 2, importance = TRUE)
-
-# Convert the sparse matrix to a dense matrix
-test_dense <- as.matrix(test)
-
-# Convert the dense matrix to a data frame
-test_df <- as.data.frame(test_dense)
-
-# Now add the labels
-test_df$labelnumber <- test_labels
-
-# Make column names unique
 names(test_df) <- make.names(names(test_df), unique = TRUE)
 
+### ATTEMPT TO FIX PROBLEMS
+
+# Train the model
+model <- ranger(train_labels ~ ., data = train_df, 
+                importance = 'impurity', num.trees = 500)
 
 # Predict on the test set
-predictions <- predict(model, newdata = test_df)
+predictions <- predict(model, test_df)
 
-# Print classification report
-print(confusionMatrix(predictions, test$labelnumber))
+# Evaluate model performance
+table(predictions$predictions, test_labels)
 
+# Check accuracy
+accuracy <- sum(round(predictions$predictions, 0)  == test_labels) / length(test_labels)
