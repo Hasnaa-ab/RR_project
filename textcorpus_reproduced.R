@@ -1,6 +1,9 @@
 # Each comment is a .ipynb cell
 # Install and load necessary packages
-#install.packages(c("tm", "SnowballC", "slam", "topicmodels", "quanteda", "caret", "e1071", "randomForest", "kernlab", "cluster", "topicmodels", "LDAvis", "ggplot2", 'rlang'))
+
+
+#install.packages(c("tm", "SnowballC", "slam", "topicmodels", "quanteda", "caret", "e1071", "randomForest", "kernlab", "cluster", "topicmodels", "LDAvis", "ggplot2", 'rlang', 'ranger))
+
 library(tm)
 library(slam)
 library(quanteda)
@@ -15,6 +18,8 @@ library(ggplot2)
 library(stringr)
 library(tokenizers)
 library(SnowballC)
+library(ranger)
+library(Matrix)
 
 # Load data
 fulldata <- read.csv("fulldata-updated.csv")
@@ -96,3 +101,49 @@ test_labels  <- fulldata$labelnumber[-trainIndex]
 train <- dtm_tfidf[trainIndex,]
 test  <- dtm_tfidf[-trainIndex,]
 
+# Generate a document-term matrix
+dtm <- DocumentTermMatrix(Corpus(VectorSource(articles)))
+
+# Transform to a term frequency-inverse document frequency (TF-IDF) matrix
+dtm_tfidf <- weightTfIdf(dtm)
+
+# Label encoding
+fulldata$labelnumber <- as.numeric(as.factor(fulldata$label))
+
+# Merge the labels with the dtm
+dtm_tfidf <- cbind(dtm_tfidf, fulldata$labelnumber)
+
+# Split the dataset into training and testing sets
+set.seed(4545) #seed for the reproducibility
+trainIndex <- createDataPartition(fulldata$labelnumber, p = .6, list = FALSE, times = 1)
+
+# Split the labels as well
+train_labels <- fulldata$labelnumber[trainIndex]
+test_labels  <- fulldata$labelnumber[-trainIndex]
+
+# Split the dtm_tfidf
+train <- dtm_tfidf[trainIndex,]
+test  <- dtm_tfidf[-trainIndex,]
+
+# Prepare matrices suitable for Random Forest
+train_df <- as.data.frame(as.matrix(train))
+test_df <- as.data.frame(as.matrix(test))
+
+# Rename the columns to use only alphanumeric characters and underscores
+names(train_df) <- make.names(names(train_df), unique = TRUE)
+names(test_df) <- make.names(names(test_df), unique = TRUE)
+
+### ATTEMPT TO FIX PROBLEMS
+
+# Train the model
+model <- ranger(train_labels ~ ., data = train_df, 
+                importance = 'impurity', num.trees = 500)
+
+# Predict on the test set
+predictions <- predict(model, test_df)
+
+# Evaluate model performance
+table(predictions$predictions, test_labels)
+
+# Check accuracy
+accuracy <- sum(round(predictions$predictions, 0)  == test_labels) / length(test_labels)
