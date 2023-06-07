@@ -28,6 +28,7 @@
   fulldata <- as.data.frame(lapply(fulldata, type.convert))
   rownames(fulldata) <- NULL
 
+
   ################## function to read txt and return data frame
   multiTextFile <- function(directoryPath) {
   # Get the list of file names in the directory
