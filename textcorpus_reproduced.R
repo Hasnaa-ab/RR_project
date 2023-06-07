@@ -147,3 +147,30 @@ table(predictions$predictions, test_labels)
 
 # Check accuracy
 accuracy <- sum(round(predictions$predictions, 0)  == test_labels) / length(test_labels)
+
+# Run a Bagging model
+control <- trainControl(method = "cv", number = 2) # Changed method to 'cv' for cross-validation and number to 2 for 2-fold cross-validation, as it is computationally heavy.
+model_bag <- train(as.factor(train_labels) ~ ., data = train_df, trControl = control, method = "treebag")
+predictions_bag <- predict(model_bag, newdata = test_df)
+
+# Print classification report
+print(confusionMatrix(predictions_bag, test_df$labelnumber))
+
+# Run a LDA model and plot the topics
+lda <- LDA(train_df[, !colnames(train_df) %in% "labelnumber"], k = 20, control = list(seed = 3434))
+topics <- tidy(lda, matrix = "beta")
+top_terms <- topics %>%
+  group_by(topic) %>%
+  top_n(10, beta) %>%
+  ungroup() %>%
+  arrange(topic, -beta)
+plot_lda <- top_terms %>%
+  mutate(term = reorder_within(term, beta, topic)) %>%
+  ggplot(aes(beta, term, fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~ topic, scales = "free") +
+  coord_flip() +
+  theme_minimal() +
+  labs(title = "Top 10 terms in each LDA topic",
+       x = "Beta", y = "")
+print(plot_lda)
