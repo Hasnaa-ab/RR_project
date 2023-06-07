@@ -28,7 +28,6 @@
   fulldata <- as.data.frame(lapply(fulldata, type.convert))
   rownames(fulldata) <- NULL
 
-<<<<<<< HEAD
   ################## function to read txt and return data frame
   multiTextFile <- function(directoryPath) {
   # Get the list of file names in the directory
@@ -74,17 +73,6 @@
   rownames(fulldata) <- seq_len(nrow(fulldata))
   
   ######################drop unique labels
-=======
-# Load data
-load_data = function(data_file){
-    fulldata <- read.csv(data_file)
-    fulldata <- fulldata[!duplicated(fulldata$title), ]
-    fulldata <- fulldata[order(rownames(fulldata)), ]
-    fulldata <- as.data.frame(lapply(fulldata, type.convert))
-    rownames(fulldata) <- NULL
-    return(fulldata)
-}
->>>>>>> Hassnaa
 
   validLabels <- function(df) {
     labelcount <- table(df$label)
