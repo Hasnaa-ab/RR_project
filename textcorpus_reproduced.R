@@ -5,11 +5,14 @@ library(tokenizers)
 library(SnowballC)
 
 # Load data
-fulldata <- read.csv("fulldata-updated.csv")
-fulldata <- fulldata[!duplicated(fulldata$title), ]
-fulldata <- fulldata[order(rownames(fulldata)), ]
-fulldata <- as.data.frame(lapply(fulldata, type.convert))
-rownames(fulldata) <- NULL
+load_data = function(data_file){
+    fulldata <- read.csv(data_file)
+    fulldata <- fulldata[!duplicated(fulldata$title), ]
+    fulldata <- fulldata[order(rownames(fulldata)), ]
+    fulldata <- as.data.frame(lapply(fulldata, type.convert))
+    rownames(fulldata) <- NULL
+    return(fulldata)
+}
 
 #
 labelcount <- table(fulldata$label)
