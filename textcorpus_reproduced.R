@@ -1,39 +1,89 @@
-# Each comment is a .ipynb cell
-# Install and load necessary packages
+  # Each comment is a .ipynb cell
+  # Install and load necessary packages
+  
+  
+  #install.packages(c("tm", "SnowballC", "slam", "topicmodels", "quanteda", "caret", "e1071", "randomForest", "kernlab", "cluster", "topicmodels", "LDAvis", "ggplot2", 'rlang', 'ranger))
+  
+  library(tm)
+  library(slam)
+  library(quanteda)
+  library(caret)
+  library(e1071)
+  library(randomForest)
+  library(kernlab)
+  library(cluster)
+  library(topicmodels)
+  library(LDAvis)
+  library(ggplot2)
+  library(stringr)
+  library(tokenizers)
+  library(SnowballC)
+  library(ranger)
+  library(Matrix)
 
+  # Load data
+  fulldata <- read.csv("fulldata-updated.csv")
+  fulldata <- fulldata[!duplicated(fulldata$title), ]
+  fulldata <- fulldata[order(rownames(fulldata)), ]
+  fulldata <- as.data.frame(lapply(fulldata, type.convert))
+  rownames(fulldata) <- NULL
 
-#install.packages(c("tm", "SnowballC", "slam", "topicmodels", "quanteda", "caret", "e1071", "randomForest", "kernlab", "cluster", "topicmodels", "LDAvis", "ggplot2", 'rlang', 'ranger))
+  ################## function to read txt and return data frame
+  multiTextFile <- function(directoryPath) {
+  # Get the list of file names in the directory
+  fileNames <- list.files(path = directoryPath, pattern = "\\.txt$", full.names = TRUE)
+  
+  # Create an empty list to store the data frames
+  dataFrames <- list()
+  
+  # Read each file and store it as a separate data frame
+  for (filePath in fileNames) {
+    data <- read.table(filePath, header = TRUE)  # Modify read function based on your file format
+    
+    # Add the data frame to the list
+    dataFrames <- c(dataFrames, list(data))
+  }
+  
+  # Merge the data frames into a single data frame
+  mergedData <- do.call(rbind, dataFrames)
+  names(mergedData) <- 'text'
+  mergedData <- mergedData[!duplicated(mergedData$text), ]
+  
+  
+  # Return the merged data frame
+  return(mergedData)
+  }
+  
+  ######################### merge label col to data frame
+  
+  assignLabels <- function(df,labels) {
+    
+    df <- cbind(df,labels)
+    names(df)[2] = 'label'
+    return(df)
+  }
+  
+  ##########################
+  
+  #
+  labelcount <- table(fulldata$label)
+  repeated <- names(labelcount[labelcount > 1])
+  fulldata <- fulldata[fulldata$label %in% repeated, ]
+  fulldata <- droplevels(fulldata)  # Drop unused levels if needed
+  rownames(fulldata) <- seq_len(nrow(fulldata))
+  
+  ######################drop unique labels
 
-library(tm)
-library(slam)
-library(quanteda)
-library(caret)
-library(e1071)
-library(randomForest)
-library(kernlab)
-library(cluster)
-library(topicmodels)
-library(LDAvis)
-library(ggplot2)
-library(stringr)
-library(tokenizers)
-library(SnowballC)
-library(ranger)
-library(Matrix)
-
-# Load data
-fulldata <- read.csv("fulldata-updated.csv")
-fulldata <- fulldata[!duplicated(fulldata$title), ]
-fulldata <- fulldata[order(rownames(fulldata)), ]
-fulldata <- as.data.frame(lapply(fulldata, type.convert))
-rownames(fulldata) <- NULL
-
-#
-labelcount <- table(fulldata$label)
-repeated <- names(labelcount[labelcount > 1])
-fulldata <- fulldata[fulldata$label %in% repeated, ]
-fulldata <- droplevels(fulldata)  # Drop unused levels if needed
-rownames(fulldata) <- seq_len(nrow(fulldata))
+  validLabels <- function(df) {
+    labelcount <- table(df$label)
+    repeated <- names(labelcount[labelcount > 1])
+    df <- df[df$label %in% repeated, ]
+    df <- droplevels(df)  # Drop unused levels if needed
+    rownames(df) <- seq_len(nrow(df))
+    
+  }
+  
+  ############################
 
 #
 fulldata$date <- as.POSIXct(fulldata$date, format = "%Y-%m-%d %H:%M:%S")
