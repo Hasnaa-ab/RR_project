@@ -21,13 +21,6 @@
   library(ranger)
   library(Matrix)
 
-  # Load data
-  fulldata <- read.csv("fulldata-updated.csv")
-  fulldata <- fulldata[!duplicated(fulldata$title), ]
-  fulldata <- fulldata[order(rownames(fulldata)), ]
-  fulldata <- as.data.frame(lapply(fulldata, type.convert))
-  rownames(fulldata) <- NULL
-
   ################## function to read txt and return data frame
   multiTextFile <- function(directoryPath) {
   # Get the list of file names in the directory
@@ -54,6 +47,25 @@
   return(mergedData)
   }
   
+  ############################# function to read csv with text
+  
+  csvText <- function(file, textCol, labelCol) {
+    
+    data <- read.csv(file)
+    data = data[,c(textCol,labelCol)]
+    names(data) = c('text','label')
+    names(data[,labelCol]) = 'label'
+    data <- data[!duplicated(data$text), ]
+    data$text = as.character(data$text)
+    data$label = as.factor(data$label)
+    
+    return(data)
+    
+  }
+  myData = csvText('fulldata-updated.csv', 'title', 'label')
+  
+  
+  
   ######################### merge label col to data frame
   
   assignLabels <- function(df,labels) {
@@ -63,14 +75,7 @@
     return(df)
   }
   
-  ##########################
-  
-  #
-  labelcount <- table(fulldata$label)
-  repeated <- names(labelcount[labelcount > 1])
-  fulldata <- fulldata[fulldata$label %in% repeated, ]
-  fulldata <- droplevels(fulldata)  # Drop unused levels if needed
-  rownames(fulldata) <- seq_len(nrow(fulldata))
+
   
   ######################drop unique labels
 
@@ -82,24 +87,26 @@
     rownames(df) <- seq_len(nrow(df))
     
   }
+  myData = validLabels(myData)
   
-  ############################
+  ############################ cleaning Text
 
-#
-fulldata$date <- as.POSIXct(fulldata$date, format = "%Y-%m-%d %H:%M:%S")
-fulldata$label <- as.factor(fulldata$label)
-month_stats <- summary(as.numeric(format(fulldata$date, "%m")))
-fulldata$article <- as.character(fulldata$article)
-
-# Clean text
-articles <- str_replace_all(fulldata$article, "\n", " ")
-articles <- str_replace_all(articles, "[0-9]+", "")
-articles <- str_replace_all(articles, "[,\\!?/:;''()``’“-”—#]", "")
-articles <- str_replace_all(articles, "[.]+", "")
-articles <- tolower(articles)
-articles <- str_replace_all(articles, "\\b\\w\\b", "")
-articles <- as.character(articles)
-
+  cleanText <- function(data) {
+    
+  data$text <- str_replace_all(data$text, "\n", " ")
+  data$text <- str_replace_all(data$text, "[0-9]+", "")
+  data$text <- str_replace_all(data$text, "[,\\!?/:;''()``’“-”—#]", "")
+  data$text <- str_replace_all(data$text, "[.]+", "")
+  data$text <- tolower(data$text)
+  data$text <- str_replace_all(data$text, "\\b\\w\\b", "")
+  data$text <- as.character(data$text)
+  
+  return(data)
+  }
+  
+  myData = cleanText(myData)
+  ################################# create tokens
+  
 # Tokenizer
 articles <- sapply(articles, function(x) tokenizers::tokenize_words(x))
 articles <- as.list(articles)
@@ -197,3 +204,33 @@ table(predictions$predictions, test_labels)
 
 # Check accuracy
 accuracy <- sum(round(predictions$predictions, 0)  == test_labels) / length(test_labels)
+<<<<<<< HEAD
+=======
+
+# Run a Bagging model
+control <- trainControl(method = "cv", number = 2) # Changed method to 'cv' for cross-validation and number to 2 for 2-fold cross-validation, as it is computationally heavy.
+model_bag <- train(as.factor(train_labels) ~ ., data = train_df, trControl = control, method = "treebag")
+predictions_bag <- predict(model_bag, newdata = test_df)
+
+# Print classification report
+print(confusionMatrix(predictions_bag, test_df$labelnumber))
+
+# Run a LDA model and plot the topics
+lda <- LDA(train_df[, !colnames(train_df) %in% "labelnumber"], k = 20, control = list(seed = 3434))
+topics <- tidy(lda, matrix = "beta")
+top_terms <- topics %>%
+  group_by(topic) %>%
+  top_n(10, beta) %>%
+  ungroup() %>%
+  arrange(topic, -beta)
+plot_lda <- top_terms %>%
+  mutate(term = reorder_within(term, beta, topic)) %>%
+  ggplot(aes(beta, term, fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~ topic, scales = "free") +
+  coord_flip() +
+  theme_minimal() +
+  labs(title = "Top 10 terms in each LDA topic",
+       x = "Beta", y = "")
+print(plot_lda)
+>>>>>>> f7a99c71c61dcee40c860f9037526b3d4824e50c
