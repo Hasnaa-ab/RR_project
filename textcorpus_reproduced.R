@@ -21,6 +21,7 @@
   library(ranger)
   library(Matrix)
 
+
   ################## function to read txt and return data frame
   multiTextFile <- function(directoryPath) {
   # Get the list of file names in the directory
@@ -204,8 +205,7 @@ table(predictions$predictions, test_labels)
 
 # Check accuracy
 accuracy <- sum(round(predictions$predictions, 0)  == test_labels) / length(test_labels)
-<<<<<<< HEAD
-=======
+
 
 # Run a Bagging model
 control <- trainControl(method = "cv", number = 2) # Changed method to 'cv' for cross-validation and number to 2 for 2-fold cross-validation, as it is computationally heavy.
@@ -233,4 +233,3 @@ plot_lda <- top_terms %>%
   labs(title = "Top 10 terms in each LDA topic",
        x = "Beta", y = "")
 print(plot_lda)
->>>>>>> f7a99c71c61dcee40c860f9037526b3d4824e50c
