@@ -1,35 +1,29 @@
-  # Each comment is a .ipynb cell
-  # Install and load necessary packages
-  
-  
-  #install.packages(c("tm", "SnowballC", "slam", "topicmodels", "quanteda", "caret", "e1071", "randomForest", "kernlab", "cluster", "topicmodels", "LDAvis", "ggplot2", 'rlang', 'ranger))
-  
-  library(tm)
-  library(slam)
-  library(quanteda)
-  library(caret)
-  library(e1071)
-  library(randomForest)
-  library(kernlab)
-  library(cluster)
-  library(topicmodels)
-  library(LDAvis)
-  library(ggplot2)
-  library(stringr)
-  library(tokenizers)
-  library(SnowballC)
-  library(ranger)
-  library(Matrix)
+# Each comment is a .ipynb cell
+# Install and load necessary packages
 
-  # Load data
-  fulldata <- read.csv("fulldata-updated.csv")
-  fulldata <- fulldata[!duplicated(fulldata$title), ]
-  fulldata <- fulldata[order(rownames(fulldata)), ]
-  fulldata <- as.data.frame(lapply(fulldata, type.convert))
-  rownames(fulldata) <- NULL
 
-  ################## function to read txt and return data frame
-  multiTextFile <- function(directoryPath) {
+#install.packages(c("tm", "SnowballC", "slam", "topicmodels", "quanteda", "caret", "e1071", "randomForest", "kernlab", "cluster", "topicmodels", "LDAvis", "ggplot2", 'rlang', 'ranger))
+
+library(tm)
+library(slam)
+library(quanteda)
+library(caret)
+library(e1071)
+library(randomForest)
+library(kernlab)
+library(cluster)
+library(topicmodels)
+library(LDAvis)
+library(ggplot2)
+library(stringr)
+library(tokenizers)
+library(SnowballC)
+library(ranger)
+library(Matrix)
+
+
+################## function to read txt and return data frame
+multiTextFile <- function(directoryPath) {
   # Get the list of file names in the directory
   fileNames <- list.files(path = directoryPath, pattern = "\\.txt$", full.names = TRUE)
   
@@ -52,53 +46,67 @@
   
   # Return the merged data frame
   return(mergedData)
-  }
+}
+
+############################# function to read csv with text
+
+csvText <- function(file, textCol, labelCol) {
   
-  ######################### merge label col to data frame
+  data <- read.csv(file)
+  data = data[,c(textCol,labelCol)]
+  names(data) = c('text','label')
+  names(data[,labelCol]) = 'label'
+  data <- data[!duplicated(data$text), ]
+  data$text = as.character(data$text)
+  data$label = as.factor(data$label)
   
-  assignLabels <- function(df,labels) {
-    
-    df <- cbind(df,labels)
-    names(df)[2] = 'label'
-    return(df)
-  }
+  return(data)
   
-  ##########################
+}
+myData = csvText('fulldata-updated.csv', 'title', 'label')
+
+
+
+######################### merge label col to data frame
+
+assignLabels <- function(df,labels) {
   
-  #
-  labelcount <- table(fulldata$label)
+  df <- cbind(df,labels)
+  names(df)[2] = 'label'
+  return(df)
+}
+
+
+
+######################drop unique labels
+
+validLabels <- function(df) {
+  labelcount <- table(df$label)
   repeated <- names(labelcount[labelcount > 1])
-  fulldata <- fulldata[fulldata$label %in% repeated, ]
-  fulldata <- droplevels(fulldata)  # Drop unused levels if needed
-  rownames(fulldata) <- seq_len(nrow(fulldata))
+  df <- df[df$label %in% repeated, ]
+  df <- droplevels(df)  # Drop unused levels if needed
+  rownames(df) <- seq_len(nrow(df))
   
-  ######################drop unique labels
+}
+myData = validLabels(myData)
 
-  validLabels <- function(df) {
-    labelcount <- table(df$label)
-    repeated <- names(labelcount[labelcount > 1])
-    df <- df[df$label %in% repeated, ]
-    df <- droplevels(df)  # Drop unused levels if needed
-    rownames(df) <- seq_len(nrow(df))
-    
-  }
+############################ cleaning Text
+
+cleanText <- function(data) {
   
-  ############################
+  data$text <- str_replace_all(data$text, "\n", " ")
+  data$text <- str_replace_all(data$text, "[0-9]+", "")
+  data$text <- str_replace_all(data$text, "[,\\!?/:;''()``’“-”—#]", "")
+  data$text <- str_replace_all(data$text, "[.]+", "")
+  data$text <- tolower(data$text)
+  data$text <- str_replace_all(data$text, "\\b\\w\\b", "")
+  data$text <- as.character(data$text)
+  
+  return(data)
+}
 
-#
-fulldata$date <- as.POSIXct(fulldata$date, format = "%Y-%m-%d %H:%M:%S")
-fulldata$label <- as.factor(fulldata$label)
-month_stats <- summary(as.numeric(format(fulldata$date, "%m")))
-fulldata$article <- as.character(fulldata$article)
-
-# Clean text
-articles <- str_replace_all(fulldata$article, "\n", " ")
-articles <- str_replace_all(articles, "[0-9]+", "")
-articles <- str_replace_all(articles, "[,\\!?/:;''()``’“-”—#]", "")
-articles <- str_replace_all(articles, "[.]+", "")
-articles <- tolower(articles)
-articles <- str_replace_all(articles, "\\b\\w\\b", "")
-articles <- as.character(articles)
+myData = cleanText(myData)
+################################# create tokens
 
 # Tokenizer
 articles <- sapply(articles, function(x) tokenizers::tokenize_words(x))
@@ -197,3 +205,31 @@ table(predictions$predictions, test_labels)
 
 # Check accuracy
 accuracy <- sum(round(predictions$predictions, 0)  == test_labels) / length(test_labels)
+
+
+# Run a Bagging model
+control <- trainControl(method = "cv", number = 2) # Changed method to 'cv' for cross-validation and number to 2 for 2-fold cross-validation, as it is computationally heavy.
+model_bag <- train(as.factor(train_labels) ~ ., data = train_df, trControl = control, method = "treebag")
+predictions_bag <- predict(model_bag, newdata = test_df)
+
+# Print classification report
+print(confusionMatrix(predictions_bag, test_df$labelnumber))
+
+# Run a LDA model and plot the topics
+lda <- LDA(train_df[, !colnames(train_df) %in% "labelnumber"], k = 20, control = list(seed = 3434))
+topics <- tidy(lda, matrix = "beta")
+top_terms <- topics %>%
+  group_by(topic) %>%
+  top_n(10, beta) %>%
+  ungroup() %>%
+  arrange(topic, -beta)
+plot_lda <- top_terms %>%
+  mutate(term = reorder_within(term, beta, topic)) %>%
+  ggplot(aes(beta, term, fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~ topic, scales = "free") +
+  coord_flip() +
+  theme_minimal() +
+  labs(title = "Top 10 terms in each LDA topic",
+       x = "Beta", y = "")
+print(plot_lda)
