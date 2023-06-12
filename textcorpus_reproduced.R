@@ -206,7 +206,6 @@ table(predictions$predictions, test_labels)
 # Check accuracy
 accuracy <- sum(round(predictions$predictions, 0)  == test_labels) / length(test_labels)
 
-
 # Run a Bagging model
 control <- trainControl(method = "cv", number = 2) # Changed method to 'cv' for cross-validation and number to 2 for 2-fold cross-validation, as it is computationally heavy.
 model_bag <- train(as.factor(train_labels) ~ ., data = train_df, trControl = control, method = "treebag")
@@ -232,4 +231,5 @@ plot_lda <- top_terms %>%
   theme_minimal() +
   labs(title = "Top 10 terms in each LDA topic",
        x = "Beta", y = "")
+
 print(plot_lda)
