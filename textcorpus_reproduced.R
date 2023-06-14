@@ -2,8 +2,7 @@
 # Install and load necessary packages
 
 
-#install.packages(c("tm", "SnowballC", "slam", "topicmodels", "quanteda", "caret", "e1071", "randomForest", "kernlab", "cluster", "topicmodels", "LDAvis", "ggplot2", 'rlang', 'ranger', 'text))
-
+#install.packages(c("tm", "SnowballC", "slam", "topicmodels", "quanteda", "caret", "e1071", "randomForest", "kernlab", "cluster", "topicmodels", "LDAvis", "ggplot2", 'rlang', 'ranger', 'text', 'tidytext'))
 library(tm)
 library(slam)
 library(quanteda)
@@ -22,8 +21,9 @@ library(ranger)
 library(Matrix)
 library(dplyr)
 library(text)
+library(tidytext)
 
-
+set.seed(4545) #seed for the reproducibility
 
 ################## function to read txt and return data frame
 multiTextFile <- function(directoryPath) {
@@ -107,70 +107,102 @@ cleanText <- function(data) {
 }
 
 articles <- cleanText(myData)
-################################# create tokens
 
-# Tokenizer
-articles <- sapply(articles, function(x) tokenizers::tokenize_words(x))
-articles <- as.list(articles)
+################################# remove stopwords
 
-# PorterStemmer
-
-stemmed_articles <- list()
-for (i in 1:length(articles)) {
-  words <- c()
+remove_stopwords <- function(texts, stopwords) {
+  cleaned_texts <- lapply(texts, function(text) {
+    # Tokenize the text
+    tokens <- strsplit(tolower(text), "\\s+")
+    
+    # Remove stopwords
+    tokens_clean <- tokens[[1]][!(tokens[[1]] %in% stopwords)]
+    
+    # Join the cleaned tokens back into a text
+    cleaned_text <- paste(tokens_clean, collapse = " ")
+    
+    # Return the cleaned text
+    return(cleaned_text)
+  })
   
-  for (word in articles[[i]]) {
-    stemmed_word <- SnowballC::wordStem(word, "english")
-    words <- c(words, stemmed_word)
-  }
-  
-  stemmed_articles[[i]] <- words
+  return(cleaned_texts)
 }
 
-stemmed_articles <- as.list(stemmed_articles)
-
-# 
+# Create custom stopwords
 stopwordscustom <- read.csv('stp.csv', header = FALSE, col.names = c('word'))
-stopwordscustom <- as.character(stopwordscustom$word)
+stopwordscustom <- c(stopwordscustom$word, 'article', 'with')  # Add 'article' and 'with' to the custom stopwords list
 
-# Remove custom stopwords
-articles <- lapply(articles, function(x) x[!x %in% stopwordscustom])
+articles_clean <- remove_stopwords(articles, stopwordscustom)
 
-# Generate a document-term matrix
-dtm <- DocumentTermMatrix(Corpus(VectorSource(articles)))
+################################# stemming
 
-# Transform to a term frequency-inverse document frequency (TF-IDF) matrix
+# Stemming function
+stem_articles <- function(articles) {
+  stemmed_articles <- character(length(articles))
+  
+  for (i in 1:length(articles)) {
+    words <- c()
+    
+    for (word in articles[[i]]) {
+      stemmed_word <- SnowballC::wordStem(word, "porter")
+      words <- c(words, stemmed_word)
+    }
+    
+    stemmed_articles[i] <- paste(words, collapse = " ")
+  }
+  
+  return(stemmed_articles)
+}
+
+stemmed_articles <- stem_articles(articles_clean)
+
+# Create a Corpus
+corpus <- Corpus(VectorSource(stemmed_articles))
+
+# Create a Document-Term Matrix (DTM)
+dtm <- DocumentTermMatrix(corpus, control = list(ngrams = c(1, 3)))
+
+# Apply TF-IDF weighing
 dtm_tfidf <- weightTfIdf(dtm)
 
 # Label encoding
 myData$labelnumber <- as.numeric(as.factor(myData$label))
 
-# Merge the labels with the dtm
+# Merge the labels with the dtm_tfidf
 dtm_tfidf <- cbind(dtm_tfidf, myData$labelnumber)
 
-# Split the dataset into training and testing sets
-set.seed(4545) #seed for the reproducibility
-trainIndex <- createDataPartition(myData$labelnumber, p = .6, list = FALSE, times = 1)
+train_test_split <- function(dtm_tfidf, myData, partition_ratio) {
+  
+  # Split the dataset into training and testing sets
+  trainIndex <- createDataPartition(myData$labelnumber, p = partition_ratio, list = FALSE, times = 1)
+  
+  # Split the labels as well
+  train_labels <- myData$labelnumber[trainIndex]
+  test_labels  <- myData$labelnumber[-trainIndex]
+  
+  # Split the dtm_tfidf
+  train <- dtm_tfidf[trainIndex,]
+  test <- dtm_tfidf[-trainIndex,]
+  
+  # Prepare matrices suitable for Random Forest
+  train_df <- as.data.frame(as.matrix(train))
+  test_df <- as.data.frame(as.matrix(test))
+  colnames(train_df)[ncol(train_df)] <- "labelnumer"
+  colnames(test_df)[ncol(test_df)] <- "labelnumer"
+  
+  # Rename the columns to use only alphanumeric characters and underscores
+  names(train_df) <- make.names(names(train_df), unique = TRUE)
+  names(test_df) <- make.names(names(test_df), unique = TRUE)
+  
+  # Return the training and testing data frames and labels
+  return(list(train_df = train_df, test_df = test_df, train_labels = train_labels, test_labels = test_labels))
+}
 
-# Split the labels as well
-train_labels <- myData$labelnumber[trainIndex]
-test_labels  <- myData$labelnumber[-trainIndex]
-
-# Split the dtm_tfidf
-train <- dtm_tfidf[trainIndex,]
-test <- dtm_tfidf[-trainIndex,]
-
-# Prepare matrices suitable for Random Forest
-train_df <- as.data.frame(as.matrix(train))
-test_df <- as.data.frame(as.matrix(test))
-colnames(train_df)[ncol(train_df)] <- "labelnumer"
-colnames(test_df)[ncol(test_df)] <- "labelnumer"
-
-# Rename the columns to use only alphanumeric characters and underscores
-names(train_df) <- make.names(names(train_df), unique = TRUE)
-names(test_df) <- make.names(names(test_df), unique = TRUE)
-
-### ATTEMPT TO FIX PROBLEMS
+split_data <- train_test_split(dtm_tfidf, myData, 0.6)
+train_df <- split_data$train_df
+test_df <- split_data$test_df
+train_labels <- split_data$train_labels
+test_labels <- split_data$test_labels
 
 # Train the model
 model <- ranger(as.factor(train_labels) ~ ., data = train_df, 
@@ -184,9 +216,7 @@ table(predictions$predictions, test_labels)
 
 # Check accuracy
 accuracy <- sum(predictions$predictions == test_labels) / length(test_labels)
-# I need to end confusionMatrix !!!!
 
-# FIX ATTEMPT
 # Define the levels that should exist
 all_levels <- 1:11 # Adjust this to the levels we expect to have
 
@@ -200,12 +230,10 @@ cm <- confusionMatrix(predictions_factor, test_labels_factor)
 # Print the confusion matrix
 print(cm)
 
-
 # Run a Bagging model
 control <- trainControl(method = "cv", number = 2) # Changed method to 'cv' for cross-validation and number to 2 for 2-fold cross-validation, as it is computationally heavy.
 model_bag <- caret::train(as.factor(labelnumer) ~ ., data=train_df, trControl=control, method="treebag")
 predictions_bag <- predict(model_bag, newdata = test_df, type="raw")
-length(myData$labelnumber)
 
 # Compute the confusion matrix for bagging model
 cm_bag <- confusionMatrix(predictions_bag, test_labels_factor)
@@ -213,22 +241,23 @@ cm_bag <- confusionMatrix(predictions_bag, test_labels_factor)
 # Print the confusion matrix
 print(cm_bag)
 
-# Bagging model accuracy is much worse 
+# Bagging model accuracy is worse in this case
 
-# Print classification report
-
-# Number of levels is not the same, that's why it is not working
-# print(confusionMatrix(factor(test_labels, levels=1:11), as.factor(round(predictions_bag)), levels=1:11))
-class(train_df)
+##### LDA
 
 # Run a LDA model and plot the topics
 lda <- LDA(dtm, k = 20, control = list(seed = 3434), )
 topics <- tidytext::tidy(lda, matrix = "beta")
 top_terms <- topics %>%
   group_by(topic) %>%
-  top_n(10, beta) %>%
+  top_n(20, beta) %>%
   ungroup() %>%
   arrange(topic, -beta)
+
+# Clean the terms in the top_terms tibble by removing quotes, commas, c(, and )
+top_terms <- top_terms %>%
+  mutate(term = gsub("\"|,|\\bc\\(|\\)", "", term)) # Remove quotes, commas, c(, and )
+
 plot_lda <- top_terms %>%
   mutate(term = tidytext::reorder_within(term, beta, topic)) %>%
   ggplot(aes(beta, term, fill = factor(topic))) +
@@ -240,4 +269,3 @@ plot_lda <- top_terms %>%
        x = "Beta", y = "")
 
 print(plot_lda)
-
