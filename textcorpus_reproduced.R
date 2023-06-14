@@ -66,7 +66,6 @@ csvText <- function(file, textCol, labelCol) {
 myData = csvText('fulldata-updated.csv', 'title', 'label')
 
 
-
 ######################### merge label col to data frame
 
 assignLabels <- function(df,labels) {
@@ -171,7 +170,7 @@ names(test_df) <- make.names(names(test_df), unique = TRUE)
 ### ATTEMPT TO FIX PROBLEMS
 
 # Train the model
-model <- ranger(train_labels ~ ., data = train_df, 
+model <- ranger(as.factor(train_labels) ~ ., data = train_df, 
                 importance = 'impurity', num.trees = 500)
 
 # Predict on the test set
@@ -181,13 +180,18 @@ predictions <- predict(model, test_df)
 table(predictions$predictions, test_labels)
 
 # Check accuracy
-accuracy <- sum(round(predictions$predictions, 0)  == test_labels) / length(test_labels)
+accuracy <- sum(predictions$predictions == test_labels) / length(test_labels)
+# I need to end confusionMatrix !!!!
+
+# confusionMatrix(factor(predictions$levels, labels=levels(as.factor(test_labels))), as.factor(test_labels))
+# levels(predictions$predictions)
+
 
 # Run a Bagging model
 
 control <- trainControl(method = "cv", number = 2) # Changed method to 'cv' for cross-validation and number to 2 for 2-fold cross-validation, as it is computationally heavy.
 model_bag <- caret::train(labelnumer ~ ., data=train_df, trControl=control, method="treebag")
-predictions_bag <- predict(model_bag, newdata = test_df)
+predictions_bag <- predict(model_bag, newdata = test_df, type="raw")
 length(myData$labelnumber)
 # Print classification report
 
@@ -198,7 +202,7 @@ class(train_df)
 library(dplyr)
 
 # Run a LDA model and plot the topics
-lda <- LDA(dtm, k = 20, control = list(seed = 3434))
+lda <- LDA(dtm, k = 20, control = list(seed = 3434), )
 topics <- tidytext::tidy(lda, matrix = "beta")
 top_terms <- topics %>%
   group_by(topic) %>%
@@ -216,3 +220,4 @@ plot_lda <- top_terms %>%
        x = "Beta", y = "")
 
 print(plot_lda)
+
