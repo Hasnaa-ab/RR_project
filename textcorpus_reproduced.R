@@ -2,7 +2,7 @@
 # Install and load necessary packages
 
 
-#install.packages(c("tm", "SnowballC", "slam", "topicmodels", "quanteda", "caret", "e1071", "randomForest", "kernlab", "cluster", "topicmodels", "LDAvis", "ggplot2", 'rlang', 'ranger', 'text', 'tidytext'))
+#install.packages(c("tm", "SnowballC", "slam", "topicmodels", "quanteda", "caret", "e1071", "randomForest", "kernlab", "cluster", "topicmodels", "LDAvis", "ggplot2", 'rlang', 'ranger', 'text', 'tidytext', 'RWeka'))
 library(tm)
 library(slam)
 library(quanteda)
@@ -22,6 +22,7 @@ library(Matrix)
 library(dplyr)
 library(text)
 library(tidytext)
+library(RWeka)
 
 set.seed(4545) #seed for the reproducibility
 
@@ -157,10 +158,15 @@ stem_articles <- function(articles) {
 stemmed_articles <- stem_articles(articles_clean)
 
 # Create a Corpus
-corpus <- Corpus(VectorSource(stemmed_articles))
+corpus <- VCorpus(VectorSource(stemmed_articles))
 
-# Create a Document-Term Matrix (DTM)
-dtm <- DocumentTermMatrix(corpus, control = list(ngrams = c(1, 3)))
+# Define a custom tokenizer function
+myTokenizer <- function(x) {
+  NGramTokenizer(x, Weka_control(min = 1, max = 1))
+}
+
+# Create a Document-Term Matrix (DTM) with bigrams and trigrams
+dtm <- DocumentTermMatrix(corpus, control = list(tokenize = myTokenizer))
 
 # Apply TF-IDF weighing
 dtm_tfidf <- weightTfIdf(dtm)
@@ -245,27 +251,41 @@ print(cm_bag)
 
 ##### LDA
 
-# Run a LDA model and plot the topics
-lda <- LDA(dtm, k = 20, control = list(seed = 3434), )
-topics <- tidytext::tidy(lda, matrix = "beta")
-top_terms <- topics %>%
-  group_by(topic) %>%
-  top_n(20, beta) %>%
-  ungroup() %>%
-  arrange(topic, -beta)
+plot_lda_topics <- function(articles, k, num_top_terms = 10, title = "Top Terms in Each LDA Topic", min_ngram=1, max_ngram=2) {
+  
+  # Create a Corpus
+  corpus <- VCorpus(VectorSource(stemmed_articles))
+  
+  # Define a custom tokenizer function for bigrams and trigrams
+  myTokenizer <- function(x) {
+    NGramTokenizer(x, Weka_control(min = min_ngram, max = max_ngram))
+  }
+  
+  # Create a Document-Term Matrix (DTM) with bigrams and trigrams
+  dtm <- DocumentTermMatrix(corpus, control = list(tokenize = myTokenizer))
+  
+  # Run LDA model
+  lda <- LDA(dtm, k = k, control = list(seed = 3434))
+  
+  # Get the top terms for each topic
+  topics <- tidy(lda, matrix = "beta")
+  top_terms <- topics %>%
+    group_by(topic) %>%
+    top_n(num_top_terms, beta) %>%
+    ungroup() %>%
+    arrange(topic, -beta)
+  
+  # Plot the LDA topics
+  plot_lda <- top_terms %>%
+    mutate(term = reorder_within(term, beta, topic)) %>%
+    ggplot(aes(beta, term, fill = factor(topic))) +
+    geom_col(show.legend = FALSE) +
+    facet_wrap(~ topic, scales = "free") +
+    theme_minimal() +
+    labs(title = title, x = "Beta", y = "")
+  
+  print(plot_lda)
+}
 
-# Clean the terms in the top_terms tibble by removing quotes, commas, c(, and )
-top_terms <- top_terms %>%
-  mutate(term = gsub("\"|,|\\bc\\(|\\)", "", term)) # Remove quotes, commas, c(, and )
-
-plot_lda <- top_terms %>%
-  mutate(term = tidytext::reorder_within(term, beta, topic)) %>%
-  ggplot(aes(beta, term, fill = factor(topic))) +
-  geom_col(show.legend = FALSE) +
-  facet_wrap(~ topic, scales = "free") +
-  # coord_flip() +
-  theme_minimal() +
-  labs(title = "Top 10 terms in each LDA topic",
-       x = "Beta", y = "")
-
-print(plot_lda)
+plot_lda_topics(articles = articles_clean, k = 10, num_top_terms = 10,
+                title = "Top 10 Terms in Each LDA Topic", min_ngram = 1, max_ngram = 2)  
