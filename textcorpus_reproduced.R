@@ -2,7 +2,7 @@
 # Install and load necessary packages
 
 
-#install.packages(c("tm", "SnowballC", "slam", "topicmodels", "quanteda", "caret", "e1071", "randomForest", "kernlab", "cluster", "topicmodels", "LDAvis", "ggplot2", 'rlang', 'ranger'))
+#install.packages(c("tm", "SnowballC", "slam", "topicmodels", "quanteda", "caret", "e1071", "randomForest", "kernlab", "cluster", "topicmodels", "LDAvis", "ggplot2", 'rlang', 'ranger', 'text))
 
 library(tm)
 library(slam)
@@ -20,6 +20,9 @@ library(tokenizers)
 library(SnowballC)
 library(ranger)
 library(Matrix)
+library(dplyr)
+library(text)
+
 
 
 ################## function to read txt and return data frame
@@ -183,23 +186,40 @@ table(predictions$predictions, test_labels)
 accuracy <- sum(predictions$predictions == test_labels) / length(test_labels)
 # I need to end confusionMatrix !!!!
 
-# confusionMatrix(factor(predictions$levels, labels=levels(as.factor(test_labels))), as.factor(test_labels))
-# levels(predictions$predictions)
+# FIX ATTEMPT
+# Define the levels that should exist
+all_levels <- 1:11 # Adjust this to the levels we expect to have
+
+# Convert predictions and test_labels to factor and explicitly set the levels
+predictions_factor <- factor(predictions$predictions, levels=all_levels)
+test_labels_factor <- factor(test_labels, levels=all_levels)
+
+# Compute the confusion matrix
+cm <- confusionMatrix(predictions_factor, test_labels_factor)
+
+# Print the confusion matrix
+print(cm)
 
 
 # Run a Bagging model
-
 control <- trainControl(method = "cv", number = 2) # Changed method to 'cv' for cross-validation and number to 2 for 2-fold cross-validation, as it is computationally heavy.
-model_bag <- caret::train(labelnumer ~ ., data=train_df, trControl=control, method="treebag")
+model_bag <- caret::train(as.factor(labelnumer) ~ ., data=train_df, trControl=control, method="treebag")
 predictions_bag <- predict(model_bag, newdata = test_df, type="raw")
 length(myData$labelnumber)
+
+# Compute the confusion matrix for bagging model
+cm_bag <- confusionMatrix(predictions_bag, test_labels_factor)
+
+# Print the confusion matrix
+print(cm_bag)
+
+# Bagging model accuracy is much worse 
+
 # Print classification report
 
 # Number of levels is not the same, that's why it is not working
 # print(confusionMatrix(factor(test_labels, levels=1:11), as.factor(round(predictions_bag)), levels=1:11))
 class(train_df)
-
-library(dplyr)
 
 # Run a LDA model and plot the topics
 lda <- LDA(dtm, k = 20, control = list(seed = 3434), )
