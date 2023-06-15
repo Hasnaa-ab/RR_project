@@ -1,6 +1,71 @@
-# Each comment is a .ipynb cell
-# Install and load necessary packages
+---
+title: "Reuters Article Titles Classification - Reproducible Research 2023"
+author:
+  - name: Hassnaa Abdelghany
+  - name: Artur Skowroński
+  - name: Daniel Śliwiński
 
+date: "`r Sys.Date()`"
+format: 
+  html:
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+    toc-depth: 2
+    toc-expand: 3
+    toc-title: Contents
+    toc-location: body
+    code-fold: true
+    theme:
+      light: flatly
+      dark: darkly
+    lof: true
+    lot: true
+execute:
+  echo: fenced
+---
+
+!["Reuters Logo"](/reuters.jfif)
+
+# Introduction
+
+Plenty of news sources created a need to develop automated systems that can help categorize and organize content effectively. This project is a collaborative effort that aims at addressing this need by focusing on the classification of Reuters articles based on their titles. We developed this project in R, and it is essentially a reproduction of the Python codes which were initially employed. A version control system, Git, was instrumental in facilitating teamwork.
+
+### Project Objective
+
+The primary goal of this project was to collaborate with others using Git, in order to make research reproducible. The analytical objective is to categorize the Reuters articles into different topics or classes based on the content present in their titles. 
+
+### Data Source
+
+We make use of a dataset comprising Reuters articles. Each record in the dataset contains the title of the article and the label representing its category. The dataset underwent preprocessing to ensure that the titles do not contain any duplications.
+
+### Preprocessing and Text Cleaning
+
+Text data typically require considerable preprocessing before they can be used for modeling. In this case it was not so difficult, as the titles were short. This project includes some text preprocessing techniques such as:
+
+- Removing special characters and numbers: This is done to ensure that only meaningful words are used in the analysis.
+- Lowercasing: Converting all the text to lowercase ensures that the analysis is case-insensitive.
+- Stopword Removal: Common words such as “and”, “the”, “is”, etc., are often removed before analyzing the text as they typically don't contain useful information for analysis.
+- Stemming: This involves reducing words to their root form. For example, “running” becomes “run”. This is done to ensure that the various forms of a word are represented as a single token.
+
+### Feature Engineering
+
+After cleaning, we convert the text data into a numerical format which can be used by the machine learning models. This project makes use of the Term Frequency-Inverse Document Frequency (TF-IDF) weighting scheme for this purpose.
+
+### Model Development
+
+This project employs two machine learning algorithms for the classification task. We used a Random Forest model and a Bagging model. We train these models using the features created from the article titles and evaluate their performance using metrics such as accuracy and confusion matrix.
+
+### Topic Modeling
+
+In addition to classification, we also perform topic modeling using Latent Dirichlet Allocation (LDA) to discover the underlying topics in the titles. This can be very useful in understanding what kinds of topics or themes are prevalent in the data, but in this case it showcased that these titles are not too suited for topic modelling. We visualize the top terms in each topic identified by LDA.
+
+### Visualization
+
+We make use of two visualization techniques to understand the data better and to interpret the results of our models. This includes plotting the top terms in each topic identified by LDA and generating a word cloud.
+
+```{r echo=FALSE, include=FALSE}
 # Load packages and install if necessary
 installPackage <- function(packageName) {
   if (!(packageName %in% installed.packages())) {
@@ -25,7 +90,15 @@ lapply(requiredPackages, require, character.only = TRUE)
 
 # Seed for the reproducibility of results
 set.seed(4545) 
+```
 
+-----------------------
+
+# Functions
+
+Here we define key functions for our project.
+
+```{r}
 ### Functions
 
 # Function for plotting top n terms in k lda topics
@@ -242,8 +315,11 @@ createWordCloud <- function(cleaned_articles, min_ngram=1, max_ngram=1) {
             max.words=200, random.order=FALSE, rot.per=0.35, 
             colors=brewer.pal(8, "Dark2"))
 }
+```
 
-### Codes
+# Data preparation
+
+```{r}
 # Read the data
 myData <- csvText('fulldata-updated.csv', 'title', 'label')
 
@@ -286,7 +362,17 @@ train_df <- split_data$train_df
 test_df <- split_data$test_df
 train_labels <- split_data$train_labels
 test_labels <- split_data$test_labels
+```
 
+# Models
+
+::: panel-tabset
+
+#### Random Forest
+
+Random Forest achieved accuracy of 86% when trained on single tokens for computational speed. In the original codes we did that with unigrams, bigrams and trigrams. 
+
+```{r}
 ### First model
 # Train the model
 model <- ranger(as.factor(train_labels) ~ ., data = train_df, 
@@ -296,7 +382,7 @@ model <- ranger(as.factor(train_labels) ~ ., data = train_df,
 predictions <- predict(model, test_df)
 
 # Evaluate model performance
-table(predictions$predictions, test_labels)
+model_performance <- table(predictions$predictions, test_labels)
 
 # Check accuracy
 accuracy <- sum(predictions$predictions == test_labels) / length(test_labels)
@@ -310,10 +396,23 @@ test_labels_factor <- factor(test_labels, levels=all_levels)
 
 # Compute the confusion matrix
 cm <- confusionMatrix(predictions_factor, test_labels_factor)
+```
 
+Confusion matrix for the first model:
+
+```{r}
 # Print the confusion matrix
 print(cm)
+```
 
+-------------------------------
+
+Our model performs well in term of the 3, 7 and 11th labels. It is clear that although there are 11 labels in the dataset, it is quite unbalanced, which makes it much easier to train as majority of the labels fall into these 3 categories.
+
+
+#### Bagging Model
+
+```{r}
 ### Second model
 # Run a Bagging model
 control <- trainControl(method = "cv", number = 2) # Changed method to 'cv' for cross-validation and number to 2 for 2-fold cross-validation, as it is computationally heavy.
@@ -322,16 +421,97 @@ predictions_bag <- predict(model_bag, newdata = test_df, type="raw")
 
 # Compute the confusion matrix for bagging model
 cm_bag <- confusionMatrix(predictions_bag, test_labels_factor)
+```
 
+Confusion matrix for the second model:
+
+```{r}
 # Print the confusion matrix
 print(cm_bag)
+```
 
-# Bagging model accuracy is worse in this case
+-------------------
+
+Bagging model performed much worse in this case on unigrams. Training it on sparser matrices with bigrams and trigrams requires a lot of computational power. In this case variance based dimension reducing approach would be helpful as implemented in python codes, however we did not manage to reproduce it in R.
+
+:::
 
 
-### LDA
+# Visualization
+
+### Topic modelling
+
+We can check different combinations of n-grams for topic modelling when creating document term matrix.
+
+::: panel-tabset
+
+
+#### Only unigrams
+
+```{r}
+# Plot top terms in topics
+plot_lda_topics(articles = articles_clean, k = 10, num_top_terms = 10,
+                 min_ngram = 1, max_ngram = 1)  
+```
+
+#### Unigrams with bigrams
+
+```{r}
 # Plot top terms in topics
 plot_lda_topics(articles = articles_clean, k = 10, num_top_terms = 10,
                  min_ngram = 1, max_ngram = 2)  
-# Word cloud
+```
+
+#### Unigrams, bigrams and trigrams
+
+```{r}
+# Plot top terms in topics
+plot_lda_topics(articles = articles_clean, k = 10, num_top_terms = 10,
+                 min_ngram = 1, max_ngram = 2)  
+```
+
+:::
+
+There is no difference between second and third combination, however results slightly differ between first and the other ones. Maybe term 'image' could be removed as well, but we thought that maybe some article title topics will have more images than the others in them.
+
+-----------------------------
+
+### Word Cloud
+
+::: panel-tabset
+
+#### Only unigrams
+
+Words in titles are rather specific. 
+
+```{r}
+createWordCloud(articles_clean, 1, 1)
+```
+
+#### Unigrams with bigrams
+
+```{r}
 createWordCloud(articles_clean, 1, 2)
+```
+
+#### Unigrams, bigrams and trigrams
+
+```{r}
+createWordCloud(articles_clean, 1, 3)
+```
+
+:::
+
+There aren't many common unigrams and the same goes for bigrams and trigrams. 
+
+--------------------------------
+
+# Summary
+
+This project illustrates the process of classifying articles into categories based on their titles using machine learning models. It consists of really simple preprocessing and feature engineering steps, followed by model training, evaluation, and visualization.
+
+By reproducing Python code in R, the project demonstrates that similar analyses can be conducted in different programming languages. However it must be said, that reproducing exactly the same results is extremely challenging due to differences in functions and packages. We all agree that python was much easier in this case.
+
+The collaborative nature of this project, facilitated by Git, underlined the importance of teamwork in data science projects. There were multiple times were reset head soft or quick lookup of 10 commits prior saved our lives. Git definitely made it much simpler.
+
+Using quarto made it really easy to create the summary file of our project. Saving environment with renv package was also incredibly simple. Last but not least, we do all agree that now the codes look much cleaner and it was a good pracice of proper coding.
