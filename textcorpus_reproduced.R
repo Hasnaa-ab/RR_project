@@ -13,7 +13,7 @@ requiredPackages <- c(
   "tm", "SnowballC", "slam", "topicmodels", "quanteda", 
   "caret", "e1071", "randomForest", "kernlab", "cluster", 
   "topicmodels", "LDAvis", "ggplot2", "rlang", "ranger", "Matrix",
-  "RWeka", "caret", "stringr", "tokenizers"
+  "RWeka", "caret", "stringr", "tokenizers", "wordcloud", "RColorBrewer"
 )
 
 # Install required packages if not already installed
@@ -33,7 +33,7 @@ plot_lda_topics <- function(articles, k, num_top_terms = 10, min_ngram=1, max_ng
   # Create a Corpus
   corpus <- VCorpus(VectorSource(stemmed_articles))
   
-  # Define a custom tokenizer function for bigrams and trigrams
+  # Define tokenizing function inside a function again for ngram control
   myTokenizer <- function(x) {
     NGramTokenizer(x, Weka_control(min = min_ngram, max = max_ngram))
   }
@@ -215,6 +215,33 @@ train_test_split <- function(dtm_tfidf, myData, partition_ratio) {
   return(list(train_df = train_df, test_df = test_df, train_labels = train_labels, test_labels = test_labels))
 }
 
+# Function to create a word cloud from cleaned articles
+createWordCloud <- function(cleaned_articles, min_ngram=1, max_ngram=1) {
+  # Define tokenizing function inside a function again for ngram control
+  myTokenizer <- function(x) {
+    NGramTokenizer(x, Weka_control(min = min_ngram, max = max_ngram))
+  }
+  # Creat document term matrix from cleaned texts but not stemmed ones.
+  corpus <- VCorpus(VectorSource(cleaned_articles))
+  
+  # Create a Document-Term Matrix (DTM)
+  dtm <- DocumentTermMatrix(corpus, control = list(tokenize = myTokenizer))
+  
+  # Get the word frequencies from the document term matrix
+  word_frequencies <- colSums(as.matrix(dtm))
+  
+  # Sort the word frequencies in decreasing order
+  word_frequencies <- sort(word_frequencies, decreasing=TRUE)
+  
+  # Create a data frame with words and their frequencies
+  df <- data.frame(word=names(word_frequencies), freq=word_frequencies)
+  
+  # Generate the word cloud
+  wordcloud(words = df$word, freq = df$freq, min.freq = 1,
+            max.words=200, random.order=FALSE, rot.per=0.35, 
+            colors=brewer.pal(8, "Dark2"))
+}
+
 ### Codes
 # Read the data
 data = csvText('fulldata-updated.csv', 'title', 'label')
@@ -305,3 +332,5 @@ print(cm_bag)
 # Plot top terms in topics
 plot_lda_topics(articles = articles_clean, k = 10, num_top_terms = 10,
                  min_ngram = 1, max_ngram = 2)  
+# Word cloud
+createWordCloud(articles_clean, 1, 2)
