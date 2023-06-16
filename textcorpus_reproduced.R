@@ -332,6 +332,6 @@ print(cm_bag)
 ### LDA
 # Plot top terms in topics
 plot_lda_topics(articles = articles_clean, k = 10, num_top_terms = 10,
-                 min_ngram = 1, max_ngram = 2)  
+                min_ngram = 1, max_ngram = 2)  
 # Word cloud
 createWordCloud(articles_clean, 1, 2)
