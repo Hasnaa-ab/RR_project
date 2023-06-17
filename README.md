@@ -39,7 +39,7 @@ The min = 1 argument in Weka_control specifies that the minimum n-gram length fo
 
 The max = 1 argument in Weka_control specifies that the maximum n-gram length for tokenization is also 1, indicating that only single words will be considered as tokens. This means that the function will tokenize the input text into individual words.
 
-### Create Word Clowd
+### Create Word Cloud
 
 function createWordCloud generates a word cloud from a collection of cleaned articles. explanation:
 
