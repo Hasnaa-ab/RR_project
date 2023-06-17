@@ -2,14 +2,14 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.361">
+<meta name="generator" content="quarto-1.2.335">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Hassnaa Abdelghany">
 <meta name="author" content="Artur Skowroński">
 <meta name="author" content="Daniel Śliwiński">
-<meta name="dcterms.date" content="2023-06-16">
+<meta name="dcterms.date" content="2023-06-17">
 
 <title>Reuters Article Titles Classification - Reproducible Research 2023</title>
 <style>
@@ -21,10 +21,9 @@ div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
   width: 0.8em;
-  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  margin: 0 0.8em 0.2em -1.6em;
   vertical-align: middle;
 }
-/* CSS for syntax highlighting */
 pre > code.sourceCode { white-space: pre; position: relative; }
 pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
@@ -51,13 +50,43 @@ pre.numberSource code > span > a:first-child::before
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
     padding: 0 4px; width: 4em;
+    color: #aaaaaa;
   }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
 div.sourceCode
   {   }
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
 
@@ -105,7 +134,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">June 16, 2023</p>
+      <p class="date">June 17, 2023</p>
     </div>
   </div>
   
@@ -129,7 +158,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="/reuters.jfif" class="img-fluid figure-img"></p>
-<figcaption class="figure-caption">“Reuters Logo”</figcaption>
+<p></p><figcaption class="figure-caption">“Reuters Logo”</figcaption><p></p>
 </figure>
 </div>
 <section id="introduction" class="level1">
@@ -452,7 +481,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="models" class="level1">
 <h1>Models</h1>
-<div class="tabset-margin-container"></div><div class="panel-tabset">
+<div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" href="">Random Forest</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">Bagging Model</a></li></ul>
 <div class="tab-content">
 <div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
@@ -503,15 +532,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 Prediction  1  2  3  4  5  6  7  8  9 10 11
         1   0  0  0  0  0  0  0  0  0  0  0
         2   0  0  0  0  0  0  0  0  0  0  0
-        3   0  0 46  0  0  0  0  0  3  0  0
+        3   0  0 45  0  0  0  0  0  4  0  0
         4   0  0  0  0  0  0  0  0  0  0  0
         5   0  0  0  0  0  0  0  0  0  0  0
         6   0  0  0  0  0  0  0  0  0  0  0
-        7   0  0  1  0  0  0 80  5 11  2  1
+        7   0  0  1  0  1  1 80  4  9  1  1
         8   0  0  0  0  0  0  0  0  0  0  0
-        9   0  0  1  0  0  0  0  0  5  0  0
+        9   0  0  1  0  0  0  0  1  6  0  0
         10  0  0  0  0  0  0  0  0  0  0  0
-        11  0  0  0  0  2  1  1  0  2  0 62
+        11  0  0  1  0  1  0  1  0  2  1 62
 
 Overall Statistics
                                           
@@ -520,30 +549,30 @@ Overall Statistics
     No Information Rate : 0.3632          
     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
                                           
-                  Kappa : 0.8081          
+                  Kappa : 0.8088          
                                           
  Mcnemar's Test P-Value : NA              
 
 Statistics by Class:
 
                      Class: 1 Class: 2 Class: 3 Class: 4 Class: 5 Class: 6
-Sensitivity                NA       NA   0.9583       NA 0.000000 0.000000
-Specificity                 1        1   0.9829        1 1.000000 1.000000
-Pos Pred Value             NA       NA   0.9388       NA      NaN      NaN
-Neg Pred Value             NA       NA   0.9885       NA 0.991031 0.995516
+Sensitivity                NA       NA   0.9375       NA 0.000000 0.000000
+Specificity                 1        1   0.9771        1 1.000000 1.000000
+Pos Pred Value             NA       NA   0.9184       NA      NaN      NaN
+Neg Pred Value             NA       NA   0.9828       NA 0.991031 0.995516
 Prevalence                  0        0   0.2152        0 0.008969 0.004484
-Detection Rate              0        0   0.2063        0 0.000000 0.000000
+Detection Rate              0        0   0.2018        0 0.000000 0.000000
 Detection Prevalence        0        0   0.2197        0 0.000000 0.000000
-Balanced Accuracy          NA       NA   0.9706       NA 0.500000 0.500000
+Balanced Accuracy          NA       NA   0.9573       NA 0.500000 0.500000
                      Class: 7 Class: 8 Class: 9 Class: 10 Class: 11
-Sensitivity            0.9877  0.00000  0.23810  0.000000    0.9841
-Specificity            0.8592  1.00000  0.99505  1.000000    0.9625
-Pos Pred Value         0.8000      NaN  0.83333       NaN    0.9118
-Neg Pred Value         0.9919  0.97758  0.92627  0.991031    0.9935
+Sensitivity            0.9877  0.00000  0.28571  0.000000    0.9841
+Specificity            0.8732  1.00000  0.99010  1.000000    0.9625
+Pos Pred Value         0.8163      NaN  0.75000       NaN    0.9118
+Neg Pred Value         0.9920  0.97758  0.93023  0.991031    0.9935
 Prevalence             0.3632  0.02242  0.09417  0.008969    0.2825
-Detection Rate         0.3587  0.00000  0.02242  0.000000    0.2780
-Detection Prevalence   0.4484  0.00000  0.02691  0.000000    0.3049
-Balanced Accuracy      0.9234  0.50000  0.61657  0.500000    0.9733</code></pre>
+Detection Rate         0.3587  0.00000  0.02691  0.000000    0.2780
+Detection Prevalence   0.4395  0.00000  0.03587  0.000000    0.3049
+Balanced Accuracy      0.9304  0.50000  0.63791  0.500000    0.9733</code></pre>
 </div>
 </div>
 <hr>
@@ -581,47 +610,47 @@ Balanced Accuracy      0.9234  0.50000  0.61657  0.500000    0.9733</code></pre>
 Prediction  1  2  3  4  5  6  7  8  9 10 11
         1   0  0  0  0  0  0  0  0  0  0  0
         2   0  0  0  0  0  0  0  0  0  0  0
-        3   0  0 28  0  0  0  0  0  1  0  2
+        3   0  0 36  0  0  0  0  1  3  0  2
         4   0  0  0  0  0  0  0  0  0  0  0
         5   0  0  0  0  0  0  0  0  0  0  0
-        6   0  0  0  0  0  0  0  0  0  0  1
-        7   0  0  0  0  0  0 66  1  1  1 10
+        6   0  0  0  0  0  0  0  0  0  0  0
+        7   0  0  0  0  0  0 59  0  1  0  2
         8   0  0  0  0  0  0  0  0  0  0  0
-        9   0  0  7  0  0  0  0  1 10  0  1
-        10  0  0  1  0  0  0  0  0  0  0  0
-        11  0  0 12  0  2  1 15  3  9  1 49
+        9   0  0  4  0  0  0  0  1  7  0  2
+        10  0  0  0  0  0  0  0  0  0  0  0
+        11  0  0  8  0  2  1 22  3 10  2 57
 
 Overall Statistics
                                           
-               Accuracy : 0.6861          
-                 95% CI : (0.6208, 0.7464)
+               Accuracy : 0.713           
+                 95% CI : (0.6488, 0.7714)
     No Information Rate : 0.3632          
     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
                                           
-                  Kappa : 0.5621          
+                  Kappa : 0.6011          
                                           
  Mcnemar's Test P-Value : NA              
 
 Statistics by Class:
 
                      Class: 1 Class: 2 Class: 3 Class: 4 Class: 5 Class: 6
-Sensitivity                NA       NA   0.5833       NA 0.000000 0.000000
-Specificity                 1        1   0.9829        1 1.000000 0.995495
-Pos Pred Value             NA       NA   0.9032       NA      NaN 0.000000
-Neg Pred Value             NA       NA   0.8958       NA 0.991031 0.995495
+Sensitivity                NA       NA   0.7500       NA 0.000000 0.000000
+Specificity                 1        1   0.9657        1 1.000000 1.000000
+Pos Pred Value             NA       NA   0.8571       NA      NaN      NaN
+Neg Pred Value             NA       NA   0.9337       NA 0.991031 0.995516
 Prevalence                  0        0   0.2152        0 0.008969 0.004484
-Detection Rate              0        0   0.1256        0 0.000000 0.000000
-Detection Prevalence        0        0   0.1390        0 0.000000 0.004484
-Balanced Accuracy          NA       NA   0.7831       NA 0.500000 0.497748
+Detection Rate              0        0   0.1614        0 0.000000 0.000000
+Detection Prevalence        0        0   0.1883        0 0.000000 0.000000
+Balanced Accuracy          NA       NA   0.8579       NA 0.500000 0.500000
                      Class: 7 Class: 8 Class: 9 Class: 10 Class: 11
-Sensitivity            0.8148  0.00000  0.47619  0.000000    0.7778
-Specificity            0.9085  1.00000  0.95545  0.995475    0.7312
-Pos Pred Value         0.8354      NaN  0.52632  0.000000    0.5326
-Neg Pred Value         0.8958  0.97758  0.94608  0.990991    0.8931
+Sensitivity            0.7284  0.00000  0.33333  0.000000    0.9048
+Specificity            0.9789  1.00000  0.96535  1.000000    0.7000
+Pos Pred Value         0.9516      NaN  0.50000       NaN    0.5429
+Neg Pred Value         0.8634  0.97758  0.93301  0.991031    0.9492
 Prevalence             0.3632  0.02242  0.09417  0.008969    0.2825
-Detection Rate         0.2960  0.00000  0.04484  0.000000    0.2197
-Detection Prevalence   0.3543  0.00000  0.08520  0.004484    0.4126
-Balanced Accuracy      0.8616  0.50000  0.71582  0.497738    0.7545</code></pre>
+Detection Rate         0.2646  0.00000  0.03139  0.000000    0.2556
+Detection Prevalence   0.2780  0.00000  0.06278  0.000000    0.4709
+Balanced Accuracy      0.8536  0.50000  0.64934  0.500000    0.8024</code></pre>
 </div>
 </div>
 <hr>
@@ -635,7 +664,7 @@ Balanced Accuracy      0.8616  0.50000  0.71582  0.497738    0.7545</code></pre>
 <section id="topic-modelling" class="level3">
 <h3 class="anchored" data-anchor-id="topic-modelling">Topic modelling</h3>
 <p>We can check different combinations of n-grams for topic modelling when creating document term matrix.</p>
-<div class="tabset-margin-container"></div><div class="panel-tabset">
+<div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true" href="">Only unigrams</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" role="tab" aria-controls="tabset-2-2" aria-selected="false" href="">Unigrams with bigrams</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-3" role="tab" aria-controls="tabset-2-3" aria-selected="false" href="">Unigrams, bigrams and trigrams</a></li></ul>
 <div class="tab-content">
 <div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
@@ -675,7 +704,7 @@ Balanced Accuracy      0.8616  0.50000  0.71582  0.497738    0.7545</code></pre>
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot top terms in topics</span></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_lda_topics</span>(<span class="at">articles =</span> articles_clean, <span class="at">k =</span> <span class="dv">10</span>, <span class="at">num_top_terms =</span> <span class="dv">10</span>,</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">min_ngram =</span> <span class="dv">1</span>, <span class="at">max_ngram =</span> <span class="dv">2</span>)  </span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">min_ngram =</span> <span class="dv">1</span>, <span class="at">max_ngram =</span> <span class="dv">3</span>)  </span>
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
@@ -690,7 +719,7 @@ Balanced Accuracy      0.8616  0.50000  0.71582  0.497738    0.7545</code></pre>
 </section>
 <section id="word-cloud" class="level3">
 <h3 class="anchored" data-anchor-id="word-cloud">Word Cloud</h3>
-<div class="tabset-margin-container"></div><div class="panel-tabset">
+<div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" role="tab" aria-controls="tabset-3-1" aria-selected="true" href="">Only unigrams</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-2" role="tab" aria-controls="tabset-3-2" aria-selected="false" href="">Unigrams with bigrams</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-3" role="tab" aria-controls="tabset-3-3" aria-selected="false" href="">Unigrams, bigrams and trigrams</a></li></ul>
 <div class="tab-content">
 <div id="tabset-3-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-3-1-tab">
@@ -891,23 +920,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     icon: icon
   };
   anchorJS.add('.anchored');
-  const isCodeAnnotation = (el) => {
-    for (const clz of el.classList) {
-      if (clz.startsWith('code-annotation-')) {                     
-        return true;
-      }
-    }
-    return false;
-  }
   const clipboard = new window.ClipboardJS('.code-copy-button', {
-    text: function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
-        }
-      }
-      return codeEl.innerText;
+    target: function(trigger) {
+      return trigger.previousElementSibling;
     }
   });
   clipboard.on('success', function(e) {
@@ -972,92 +987,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       return note.innerHTML;
     });
   }
-      let selectedAnnoteEl;
-      const selectorForAnnotation = ( cell, annotation) => {
-        let cellAttr = 'data-code-cell="' + cell + '"';
-        let lineAttr = 'data-code-annotation="' +  annotation + '"';
-        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
-        return selector;
-      }
-      const selectCodeLines = (annoteEl) => {
-        const doc = window.document;
-        const targetCell = annoteEl.getAttribute("data-target-cell");
-        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
-        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
-        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
-        const lineIds = lines.map((line) => {
-          return targetCell + "-" + line;
-        })
-        let top = null;
-        let height = null;
-        let parent = null;
-        if (lineIds.length > 0) {
-            //compute the position of the single el (top and bottom and make a div)
-            const el = window.document.getElementById(lineIds[0]);
-            top = el.offsetTop;
-            height = el.offsetHeight;
-            parent = el.parentElement.parentElement;
-          if (lineIds.length > 1) {
-            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
-            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
-            height = bottom - top;
-          }
-          if (top !== null && height !== null && parent !== null) {
-            // cook up a div (if necessary) and position it 
-            let div = window.document.getElementById("code-annotation-line-highlight");
-            if (div === null) {
-              div = window.document.createElement("div");
-              div.setAttribute("id", "code-annotation-line-highlight");
-              div.style.position = 'absolute';
-              parent.appendChild(div);
-            }
-            div.style.top = top - 2 + "px";
-            div.style.height = height + 4 + "px";
-            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
-            if (gutterDiv === null) {
-              gutterDiv = window.document.createElement("div");
-              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
-              gutterDiv.style.position = 'absolute';
-              const codeCell = window.document.getElementById(targetCell);
-              const gutter = codeCell.querySelector('.code-annotation-gutter');
-              gutter.appendChild(gutterDiv);
-            }
-            gutterDiv.style.top = top - 2 + "px";
-            gutterDiv.style.height = height + 4 + "px";
-          }
-          selectedAnnoteEl = annoteEl;
-        }
-      };
-      const unselectCodeLines = () => {
-        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
-        elementsIds.forEach((elId) => {
-          const div = window.document.getElementById(elId);
-          if (div) {
-            div.remove();
-          }
-        });
-        selectedAnnoteEl = undefined;
-      };
-      // Attach click handler to the DT
-      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
-      for (const annoteDlNode of annoteDls) {
-        annoteDlNode.addEventListener('click', (event) => {
-          const clickedEl = event.target;
-          if (clickedEl !== selectedAnnoteEl) {
-            unselectCodeLines();
-            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
-            if (activeEl) {
-              activeEl.classList.remove('code-annotation-active');
-            }
-            selectCodeLines(clickedEl);
-            clickedEl.classList.add('code-annotation-active');
-          } else {
-            // Unselect the line
-            unselectCodeLines();
-            clickedEl.classList.remove('code-annotation-active');
-          }
-        });
-      }
   const findCites = (el) => {
     const parentEl = el.parentElement;
     if (parentEl) {
