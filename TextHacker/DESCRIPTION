@@ -1,0 +1,10 @@
+Package: TextHacker
+Type: Package
+Title: Text Analysis and Text Labels Classification
+Version: 0.1.0
+Author: Daniel Sliwinski Artur Skowronski Hassnaa Abdelghany
+Maintainer: Hassnaa Abdelghany <hasnaaabdelghani@gmail.com>
+Description: This Package is created for those who did not perform text analysis perfor in R and they have text file they wish to explore
+License: open source
+Encoding: UTF-8
+LazyData: true
