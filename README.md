@@ -6,29 +6,29 @@
 - Artur Skowroński
 
 ## Project overview:
-This code is created for those who did not perform text analysis perfor in R and they have text file they wish to explore. you need to run functions with few parameters to get high quality LDA (topic modeling) visiualization word clowds.
-if you have category for your text this code can help you classify new text based on text you have previously classified. The sample file in Quando file is based on News Articles with their categories.
+This code is created for those who did not perform text analysis perfor in R and they have text file they wish to explore. You need to run functions with few parameters to get high quality LDA (topic modeling) visualisations and word clouds.
+If you have category for your text this code can help you classify new text based on text you have previously classified. The sample file in Quatro file is based on News Articles with their categories.
 
 ## Installation instructions:
 You only need to copy functions and run them or load them into your functions .r file. Using "text" or "label" as names in the data frame is totally forbidden in this context. The function will rely on these names to produce output, so you need to make sure that these names are only used for the text column and label column and not other columns.
 
 ## File structure:
-To add more stopwords, go to the stp file and add the new word in a new line between two quotations.
+To add more stopwords, go to the stp.csv file and add the new word in a new line between two quotations.
 
 ## Running Code:
-you have two options to create a text file:
+You have two options to create a text file:
 - you have csv file with text in each row. This means you should use csvText(). where first argument will be your text file.
 - you have seperate  .txt files in a folder. run multiTextFile() and add your file path.
 
 Next, run validLabels() to avoid error when creating train and test sample use validLabels(). it takes one argument which is data and make sure there is at least two labels for each label in the data(one to be assigned in test set and another in train set). this avoid model to face labels for the first time when training or predicting data.
 
 ### Cleaning Code
-then we shall clean text. The cleanText function is designed to perform text cleaning operations on a data frame containing text data. It takes the input data frame and modifies the text column by applying a series of cleaning steps. the function replaces all newline characters (\n) in the text column with a space, removes any numeric digits present in the text column and, remove characters such as commas, backslashes, exclamation marks, question marks, colons, semicolons, quotation marks, parentheses, hyphens, and hashtags.
+Then we shall clean text. The cleanText function is designed to perform text cleaning operations on a data frame containing text data. It takes the input data frame and modifies the text column by applying a series of cleaning steps. The function replaces all newline characters (\n) in the text column with a space, removes any numeric digits present in the text column and, remove characters such as commas, backslashes, exclamation marks, question marks, colons, semicolons, quotation marks, parentheses, hyphens, and hashtags.
 
-remove_stopwords() and stem_articles() are there to remove stopwords and perform steming. first argument is the text column from your dataframe. stopword takes additional argument which is the stp.csv like file.
+remove_stopwords() and stem_articles() are there to remove stopwords and perform steming. First argument is the text column from your dataframe. stopword takes additional argument which is the stp.csv like file.
 
 ### Tokenization
-the heart of text analysis is to generate the keywords AKA tokens. this is where the words get counted and analyized.
+The heart of text analysis is to generate the keywords AKA tokens. This is where the words get counted and analyized.
 myTokenizer() takes a text input x as its argument. Here's how the function works:
 
 The function uses the NGramTokenizer function from the RWeka package to tokenize the input text. Tokenization is the process of breaking down a text into individual units called tokens.
@@ -41,7 +41,7 @@ The max = 1 argument in Weka_control specifies that the maximum n-gram length fo
 
 ### Create Word Cloud
 
-function createWordCloud generates a word cloud from a collection of cleaned articles. explanation:
+Function createWordCloud generates a word cloud from a collection of cleaned articles. explanation:
 
 The function begins by defining an inner function called myTokenizer. This function utilizes the NGramTokenizer function from the RWeka package to tokenize the text. The min_ngram and max_ngram arguments allow control over the minimum and maximum n-gram lengths for tokenization.
 
